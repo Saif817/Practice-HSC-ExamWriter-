@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HSC Practice ExamWriter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0d2452;
+    --navy-2:#123a72;
+    --navy-3:#1f5fbf;
+    --sky:#eaf3fc;
+    --sky-2:#dceafb;
+    --line:#c6d6ea;
+    --ink:#0d2452;
+    --muted:#5c7396;
+    --danger:#b3261e;
+    --paper:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:var(--sky);
+    color:var(--ink);
+  }
+  .screen{display:none;min-height:100vh;}
+  .screen.active{display:block;}
+
+  /* ===== shared header ===== */
+  .topband{height:6px;background:linear-gradient(90deg,#bcdcf7,#dceafb);}
+  header.masthead{
+    background:var(--navy);
+    color:#fff;
+    padding:28px 40px 34px;
+  }
+  header.masthead h1{margin:0 0 6px;font-size:26px;letter-spacing:.2px;}
+  header.masthead p{margin:0;color:#a9c1e6;font-size:14px;}
+
+  /* ===== HOME SCREEN ===== */
+  #screen-home .content{
+    display:flex;flex-direction:column;align-items:center;
+    gap:18px;margin-top:120px;
+  }
+  .big-btn{
+    width:420px;max-width:85vw;
+    background:var(--navy);
+    color:#fff;border:none;border-radius:6px;
+    padding:22px 20px;font-size:19px;font-weight:700;
+    cursor:pointer;transition:background .15s ease, transform .1s ease;
+    font-family:Arial, Helvetica, sans-serif;
+  }
+  .big-btn:hover{background:var(--navy-2);}
+  .big-btn:active{transform:scale(.99);}
+
+  /* ===== SETUP SCREEN ===== */
+  #screen-setup .wrap{
+    display:flex;justify-content:center;margin-top:60px;padding:0 20px 60px;
+  }
+  .setup-card{
+    background:var(--sky-2);
+    border:2px solid var(--navy);
+    border-radius:18px;
+    padding:36px 44px;
+    width:820px;max-width:100%;
+  }
+  .setup-card h2{margin:0 0 22px;font-size:24px;color:var(--navy);}
+  .row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:8px;}
+  .row.subject-row{margin-bottom:26px;}
+  .subject-search-wrap{position:relative;flex:1;min-width:260px;}
+  .subject-search-wrap input#subjectInput{width:100%;}
+  .subject-dropdown{
+    display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;
+    background:var(--navy);border-radius:8px;overflow:hidden;
+    max-height:260px;overflow-y:auto;z-index:30;
+    box-shadow:0 8px 20px rgba(13,36,82,.28);
+  }
+  .subject-dropdown.open{display:block;}
+  .subject-dropdown .opt{
+    padding:11px 16px;color:#fff;font-size:14px;cursor:pointer;
+    font-family:'Public Sans', Arial, Helvetica, sans-serif;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .subject-dropdown .opt:last-child{border-bottom:none;}
+  .subject-dropdown .opt:hover, .subject-dropdown .opt.hi{background:var(--navy-2);}
+  .subject-dropdown .none{padding:11px 16px;color:#a9c1e6;font-size:13px;font-style:italic;}
+  .row.duration-row{gap:22px;align-items:flex-end;margin-top:16px;}
+  select#subjectSelect, input#subjectInput, input#manualMinutes{
+    background:var(--navy);color:#fff;border:none;border-radius:8px;
+    padding:12px 16px;font-size:15px;
+    font-family:'Public Sans', Arial, Helvetica, sans-serif;
+  }
+  input#subjectInput::placeholder{color:#c7d5ec;font-family:'Public Sans', Arial, Helvetica, sans-serif;}
+  input#manualMinutes{background:#fff;color:var(--navy);border:2px solid var(--navy);width:120px;}
+  .req{color:var(--navy);font-size:20px;font-weight:700;}
+  .duration-circle{
+    background:var(--navy);color:#fff;border:none;border-radius:50%;
+    width:96px;height:96px;font-size:19px;font-weight:800;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+    transition:transform .1s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .duration-circle:hover{background:var(--navy-2);}
+  .duration-circle.selected{box-shadow:0 0 0 4px #7fb3ef;}
+  .duration-circle.current{
+    background:var(--navy-3);cursor:default;font-size:16px;line-height:1.2;
+    text-align:center;box-shadow:0 0 0 4px #b7d6f7;position:relative;
+  }
+  .duration-circle.current::before{
+    content:"Selected";position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+    font-size:10px;font-weight:700;color:var(--navy);white-space:nowrap;letter-spacing:.4px;text-transform:uppercase;
+  }
+  .duration-selected-lbl{font-size:12px;font-weight:700;color:var(--navy);margin:0 0 20px;}
+  .helptext{font-size:12px;color:var(--muted);margin:-14px 0 20px;}
+  .toggle-row{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;}
+  .radio-dot{
+    width:24px;height:24px;border-radius:50%;border:2px solid var(--navy);
+    flex:0 0 auto;margin-top:2px;cursor:pointer;position:relative;background:#fff;
+  }
+  .radio-dot.on{background:var(--navy);}
+  .radio-dot.on::after{
+    content:"";position:absolute;inset:5px;border-radius:50%;background:#fff;
+  }
+  .radio-dot.disabled{border-color:#a9bcd8;cursor:not-allowed;opacity:.6;}
+  .toggle-label{font-size:17px;font-weight:700;color:var(--navy);cursor:pointer;}
+  .sub-options{display:flex;gap:10px;margin:10px 0 0 38px;align-items:center;}
+  .pill{
+    border:2px solid var(--navy);background:#fff;color:var(--navy);
+    border-radius:20px;padding:9px 18px;font-size:14px;font-weight:600;
+    cursor:pointer;
+  }
+  .pill.selected{background:var(--sky-2);border-color:var(--navy-3);color:var(--navy);box-shadow:0 0 0 2px var(--navy-3) inset;}
+  .begin-btn{
+    display:block;width:820px;max-width:100%;margin:26px auto 0;
+    background:var(--navy);color:#fff;border:none;border-radius:6px;
+    padding:20px;font-size:20px;font-weight:800;cursor:pointer;
+  }
+  .begin-btn:hover{background:var(--navy-2);}
+  .setup-summary{
+    width:820px;max-width:100%;margin:14px auto 0;text-align:center;
+    color:var(--navy);font-size:14px;
+  }
+  .back-link{
+    display:inline-block;margin:20px 0 0 40px;color:#fff;text-decoration:none;font-size:14px;
+    cursor:pointer;
+  }
+  .back-link:hover{text-decoration:underline;}
+
+  /* ===== EXAM SCREEN ===== */
+  #screen-exam{background:#f3f6fb;}
+  .ew-chrome{position:sticky;top:0;z-index:20;background:#fff;}
+  .ew-header{
+    background:#fff;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:10px;padding:14px 22px;
+    font-weight:700;color:var(--navy);font-size:17px;
+  }
+  .ew-header .logo{width:24px;height:24px;background:var(--navy);border-radius:5px;display:inline-block;position:relative;}
+  .ew-header .logo::after{content:"";position:absolute;inset:6px;background:#fff;clip-path:polygon(0 0,100% 50%,0 100%);}
+  .ew-toolbar{
+    background:#fff;border-bottom:1px solid var(--line);
+    display:flex;align-items:stretch;gap:6px;padding:12px 18px;
+    flex-wrap:wrap;
+  }
+  .tbtn{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    background:none;border:none;color:var(--navy-3);cursor:pointer;
+    font-size:11px;padding:6px 12px;border-radius:6px;font-family:Arial, Helvetica, sans-serif;
+  }
+  .tbtn:hover{background:var(--sky);}
+  .tbtn:disabled{opacity:.35;cursor:not-allowed;}
+  .tbtn svg{width:21px;height:21px;}
+  .tbtn:not(svg){color:#3b4a63;}
+  .tsep{width:1px;align-self:stretch;background:var(--line);margin:2px 8px;}
+  .spacer-sm{width:8px;}
+  .toolcard{
+    border:1px solid var(--line);border-radius:8px;padding:8px 18px;text-align:center;
+    min-width:150px;background:#fff;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:2px;margin:0 4px;
+  }
+  .toolcard.iconcard{cursor:pointer;color:var(--navy-3);font-family:Arial,sans-serif;font-size:11px;min-width:110px;}
+  .toolcard.iconcard svg{width:22px;height:22px;margin-bottom:2px;}
+  .toolcard.iconcard span{color:#3b4a63;line-height:1.3;}
+  .toolcard.iconcard:hover{background:var(--sky);}
+  .toolcard .lbl{font-size:11px;color:var(--muted);}
+  .toolcard .val{font-size:21px;font-weight:700;color:var(--navy-3);font-variant-numeric:tabular-nums;}
+  .toolcard .pausebtn{
+    background:none;border:none;color:var(--navy-3);font-size:11px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:4px;margin-top:1px;
+  }
+  .toolcard.dim{opacity:.4;}
+  .spacer{flex:1;}
+
+  .format-bar{
+    background:#fbfcfe;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:6px;padding:8px 18px;flex-wrap:wrap;
+  }
+  .fbtn{
+    background:none;border:none;border-radius:5px;
+    width:32px;height:30px;cursor:pointer;color:var(--navy);font-weight:700;font-size:15px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .fbtn.active{background:var(--sky-2);}
+  .fbtn.align.active{background:var(--sky-2);}
+  .fbtn:hover{background:var(--sky);}
+  .fbtn.colorbtn{position:relative;width:34px;}
+  .fbtn.colorbtn label{cursor:pointer;font-weight:700;font-size:15px;}
+  .fbtn.colorbtn input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
+  .fsel{border:1px solid var(--line);border-radius:5px;height:30px;color:var(--navy);font-size:13px;padding:0 4px;background:#fff;}
+
+  .ruler{
+    height:22px;background:#fff;border-bottom:1px solid var(--line);
+    position:relative;overflow:hidden;
+  }
+  .ruler .marks{
+    position:absolute;left:calc(50% - 450px);top:0;width:900px;height:100%;
+    background-image:repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 40px);
+    background-position:left center;
+  }
+
+  .pages-wrap{
+    padding:34px 20px 120px;
+    display:flex;flex-direction:column;align-items:center;gap:30px;
+  }
+  .page{
+    background:var(--paper);
+    width:900px;max-width:96vw;
+    min-height:1160px;
+    box-shadow:0 2px 10px rgba(13,36,82,.12);
+    padding:96px 90px;
+    font-family:"Times New Roman", Times, serif;
+    font-size:20px;
+    line-height:1.5;
+    color:#111;
+    outline:none;
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    overflow-wrap:break-word;
+    word-break:break-word;
+  }
+  .page:focus{box-shadow:0 0 0 2px var(--navy-3), 0 2px 10px rgba(13,36,82,.12);}
+  .page-num-tag{
+    text-align:center;color:var(--muted);font-family:Arial,sans-serif;font-size:11px;margin-top:-14px;
+  }
+
+  .statusbar{
+    position:fixed;left:0;right:0;bottom:0;
+    background:#fff;border-top:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:8px 20px;font-size:12px;color:var(--muted);
+  }
+
+  /* modal */
+  .modal-bg{
+    display:none;position:fixed;inset:0;background:rgba(13,36,82,.45);
+    align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .modal-bg.active{display:flex;}
+  .modal{
+    background:#fff;border-radius:10px;max-width:520px;width:100%;
+    padding:28px 30px;font-family:Arial, Helvetica, sans-serif;
+  }
+  .modal h3{margin:0 0 14px;color:var(--navy);}
+  .modal p, .modal li{font-size:14px;color:#33425f;line-height:1.55;}
+  .modal .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+  .modal button{
+    border:none;border-radius:6px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;
+  }
+  .modal .primary{background:var(--navy);color:#fff;}
+  .modal .ghost{background:#eef2f8;color:var(--navy);}
+
+  @media print{
+    body *{visibility:hidden;}
+    .pages-wrap, .pages-wrap *{visibility:visible;}
+    .pages-wrap{position:absolute;top:0;left:0;padding:0;gap:0;}
+    .page{
+      box-shadow:none;width:100%;max-width:none;min-height:100vh;
+      page-break-after:always;padding:20mm 18mm;
+    }
+    .page-num-tag{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= HOME SCREEN ================= -->
+<section id="screen-home" class="screen active">
+  <div class="topband"></div>
+  <header class="masthead">
+    <h1>HSC Practice ExamWriter</h1>
+    <p>NESA Timed Practice ExamWriter Software Replica</p>
+  </header>
+  <div class="content">
+    <button class="big-btn" onclick="goToSetup()">Enter Exam Room</button>
+    <button class="big-btn" onclick="openModal('instructionsModal')">Exam Instructions</button>
+  </div>
+</section>
+
+<!-- ================= SETUP SCREEN ================= -->
+<section id="screen-setup" class="screen">
+  <div class="topband"></div>
+  <header class="masthead">
+    <h1>HSC Practice ExamWriter</h1>
+    <p>NESA Timed Practice ExamWriter Software Replica</p>
+    <a class="back-link" onclick="showScreen('screen-home')">&larr; Back to Home</a>
+  </header>
+
+  <div class="wrap">
+    <div class="setup-card">
+      <h2>Exam Duration</h2>
+      <div class="row subject-row">
+        <div class="subject-search-wrap">
+          <input type="text" id="subjectInput" placeholder="Search Bar / Subject..." autocomplete="off"
+                 oninput="onSubjectInput()" onfocus="onSubjectInput()" onblur="hideSubjectDropdownDelayed()">
+          <div class="subject-dropdown" id="subjectDropdown"></div>
+        </div>
+        <span class="req">*</span>
+      </div>
+      <div class="row duration-row">
+        <div class="duration-circle current" id="currentDurationCircle">2h<br>0m</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <label style="font-size:12px;color:var(--navy);font-weight:700;">Custom (minutes)</label>
+          <input type="number" id="manualMinutes" min="10" step="5" value="120" onchange="onManualChange()">
+        </div>
+      </div>
+      <div class="duration-selected-lbl" id="durationSelectedLbl">Selected duration: 2h 0m</div>
+      <div class="helptext">Durations are approximate working-time estimates (reading time not included) — confirm against the official NESA exam timetable.</div>
+
+      <div class="toggle-row">
+        <div class="radio-dot" id="extraDot" onclick="toggleExtra()"></div>
+        <div>
+          <div class="toggle-label" onclick="toggleExtra()">Include Extra Time Provisions</div>
+          <div class="sub-options" id="extraOptions" style="display:none;">
+            <button type="button" class="pill" data-rate="2.5" onclick="setExtraRate(2.5)">2.5min per 30min</button>
+            <button type="button" class="pill selected" data-rate="5" onclick="setExtraRate(5)">5min per 30min</button>
+            <span class="req">*</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <div class="radio-dot" id="restDot" onclick="toggleRest()"></div>
+        <div>
+          <div class="toggle-label" onclick="toggleRest()">Include Rest Break Provisions</div>
+          <div class="sub-options" id="restOptions" style="display:none;">
+            <span class="pill selected" style="cursor:default;">5min per 30min</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="toggle-row" id="readingRow">
+        <div class="radio-dot disabled" id="readingDot" onclick="toggleReading()"></div>
+        <div>
+          <div class="toggle-label" onclick="toggleReading()">Include Reading Time</div>
+          <div class="sub-options" id="readingOptions" style="display:none;">
+            <span class="pill selected" style="cursor:default;" id="readingRateLbl">— min</span>
+          </div>
+          <div class="helptext" id="readingHint" style="margin:6px 0 0;">Choose a subject from the search bar first — reading time is set per subject.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="begin-btn" onclick="beginExam()">Begin Exam</button>
+  <div class="setup-summary" id="setupSummary"></div>
+  <div style="height:40px;"></div>
+</section>
+
+<!-- ================= EXAM SCREEN ================= -->
+<section id="screen-exam" class="screen">
+  <div class="ew-chrome">
+  <div class="ew-header">
+    <span class="logo"></span> HSC ExamWriter
+  </div>
+  <div class="ew-toolbar">
+    <button class="tbtn" onclick="addPage()" id="newPageBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>
+      New
+    </button>
+    <button class="tbtn" onclick="doCommand('cut')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/></svg>
+      Cut
+    </button>
+    <button class="tbtn" onclick="doCommand('copy')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      Copy
+    </button>
+    <button class="tbtn" onclick="doCommand('paste')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6a1 1 0 011 1v2H8V3a1 1 0 011-1z"/><rect x="5" y="4" width="14" height="18" rx="2"/></svg>
+      Paste
+    </button>
+    <div class="tsep"></div>
+    <button class="tbtn" onclick="doCommand('undo')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h11a5 5 0 010 10h-2M3 10l5-5M3 10l5 5"/></svg>
+      Undo
+    </button>
+    <button class="tbtn" onclick="doCommand('redo')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10H10a5 5 0 000 10h2M21 10l-5-5M21 10l-5 5"/></svg>
+      Redo
+    </button>
+
+    <div class="spacer-sm"></div>
+    <div class="toolcard" id="examTimerBox">
+      <div class="lbl">Exam Time Remaining</div>
+      <div class="val" id="examTimeVal">00:00:00</div>
+    </div>
+    <div class="toolcard dim" id="restTimerBox">
+      <div class="lbl">Rest Time Remaining</div>
+      <div class="val" id="restTimeVal">00:00:00</div>
+    </div>
+    <div class="toolcard dim" id="readingTimerBox">
+      <div class="lbl">Reading Time Remaining</div>
+      <div class="val" id="readingTimeVal">00:00:00</div>
+    </div>
+    <button class="toolcard iconcard" onclick="toggleBreak()" id="breakBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v6a4 4 0 01-4 4H6a4 4 0 01-4-4z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+      <span id="breakBtnLbl">Start/Stop<br>Rest Break</span>
+    </button>
+    <button class="toolcard iconcard" onclick="confirmLeave()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+      <span>Leave Exam</span>
+    </button>
+
+    <div class="spacer"></div>
+    <button class="tbtn" onclick="doPrint()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="8"/><path d="M6 14H3a1 1 0 01-1-1v-4a1 1 0 011-1h18a1 1 0 011 1v4a1 1 0 01-1 1h-3"/></svg>
+      Export
+    </button>
+    <button class="tbtn" onclick="openModal('instructionsModal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 015 .5c0 1.5-2.5 2-2.5 3.5"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
+      Help
+    </button>
+  </div>
+
+  <div class="format-bar">
+    <button class="fbtn" onclick="doCommand('bold')"><b>B</b></button>
+    <button class="fbtn" onclick="doCommand('italic')"><i>I</i></button>
+    <button class="fbtn" onclick="doCommand('underline')"><u>U</u></button>
+    <div class="fbtn colorbtn">
+      <label for="foreColorInput"><span style="border-bottom:3px solid #000;">A</span></label>
+      <input type="color" id="foreColorInput" value="#000000" oninput="doCommand('foreColor', this.value)">
+    </div>
+    <div class="fbtn colorbtn">
+      <label for="hiliteColorInput"><span style="background:#ffe066;">A</span></label>
+      <input type="color" id="hiliteColorInput" value="#ffff00" oninput="doCommand('hiliteColor', this.value)">
+    </div>
+    <div class="tsep"></div>
+    <button class="fbtn align active" onclick="setAlign(this,'justifyLeft')">&#8676;</button>
+    <button class="fbtn align" onclick="setAlign(this,'justifyCenter')">&#8596;</button>
+    <button class="fbtn align" onclick="setAlign(this,'justifyRight')">&#8677;</button>
+    <button class="fbtn align" onclick="setAlign(this,'justifyFull')">&#9776;</button>
+    <div class="tsep"></div>
+    <button class="fbtn" onclick="doCommand('insertUnorderedList')">&bull;&equiv;</button>
+    <button class="fbtn" onclick="doCommand('insertOrderedList')">1.&equiv;</button>
+    <button class="fbtn" onclick="doCommand('indent')">&#8677;|</button>
+    <select class="fsel" onchange="doCommand('fontSize', this.value)">
+      <option value="2">10pt</option>
+      <option value="3" selected>12pt</option>
+      <option value="4">14pt</option>
+      <option value="5">18pt</option>
+      <option value="6">24pt</option>
+    </select>
+  </div>
+
+  <div class="ruler"><div class="marks"></div></div>
+  </div>
+
+  <div class="pages-wrap" id="pagesWrap"></div>
+
+  <div class="statusbar">
+    <span id="pageIndicator">Page 1 of 1</span>
+    <span id="wordCount">0 words</span>
+  </div>
+</section>
+
+<!-- ================= MODALS ================= -->
+<div class="modal-bg" id="instructionsModal">
+  <div class="modal">
+    <h3>Exam Instructions</h3>
+    <ul>
+      <li>Select your subject (or set a custom duration) on the setup screen, then choose any Extra Time or Rest Break provisions before you begin.</li>
+      <li>Copying and pasting only works inside the ExamWriter — content cannot be pasted in from, or copied out to, other applications.</li>
+      <li>Use <b>Start Rest Break</b> to pause the exam clock and start the rest break clock. Select it again to resume the exam.</li>
+      <li>You may add up to 20 pages using the <b>New</b> button.</li>
+      <li>When you are finished, use <b>Export / Print</b> to save your work as a PDF, then select <b>Leave Exam</b>.</li>
+    </ul>
+    <div class="modal-actions"><button class="primary" onclick="closeModal('instructionsModal')">Close</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="leaveModal">
+  <div class="modal">
+    <h3>Leave Exam?</h3>
+    <p>Your work will not be saved inside the ExamWriter. Make sure you have exported/printed a PDF copy before leaving. This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="ghost" onclick="closeModal('leaveModal')">Cancel</button>
+      <button class="primary" style="background:var(--danger)" onclick="leaveExamConfirmed()">Leave Exam</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="alertModal">
+  <div class="modal">
+    <h3 id="alertTitle">Notice</h3>
+    <p id="alertBody"></p>
+    <div class="modal-actions"><button class="primary" onclick="closeModal('alertModal')">OK</button></div>
+  </div>
+</div>
+
+<script>
+/* ============ Subject database: [name, writingMinutes, readingMinutes] — official NESA HSC exam timing ============ */
+const SUBJECTS = [
+  ["English Advanced (Paper 1 – Texts and Human Experiences)", 90, 10],
+  ["English EAL/D (Paper 1 – Module A and Focus on Writing)", 90, 10],
+  ["English Standard (Paper 1 – Texts and Human Experiences)", 90, 10],
+  ["English Studies", 150, 10],
+  ["Classical Greek Extension", 115, 5],
+  ["Classical Hebrew Extension", 115, 5],
+  ["German Continuers", 175, 5],
+  ["Indonesian Extension", 115, 5],
+  ["Japanese Beginners", 155, 5],
+  ["Japanese Continuers", 175, 5],
+  ["English Advanced (Paper 2 – Modules)", 120, 5],
+  ["English EAL/D (Paper 2 – Module B and Module C)", 60, 5],
+  ["English Standard (Paper 2 – Modules)", 120, 5],
+  ["English EAL/D (Listening Paper)", 30, 0],
+  ["Music 1 (Aural Skills)", 60, 5],
+  ["Music 2 (Musicology and Aural Skills)", 90, 5],
+  ["Indonesian Beginners", 150, 10],
+  ["Classical Hebrew Continuers", 180, 5],
+  ["Earth and Environmental Science", 180, 5],
+  ["Tourism, Travel and Events (VET)", 120, 5],
+  ["Indonesian Continuers", 170, 10],
+  ["Agriculture", 180, 5],
+  ["Arabic Continuers", 175, 5],
+  ["Armenian Continuers", 125, 5],
+  ["Chinese in Context", 155, 5],
+  ["Croatian Continuers", 125, 5],
+  ["Dutch Continuers", 125, 5],
+  ["Filipino Continuers", 125, 5],
+  ["Hindi Continuers", 125, 5],
+  ["Hungarian Continuers", 125, 5],
+  ["Japanese in Context", 155, 5],
+  ["Khmer Continuers", 125, 5],
+  ["Korean in Context", 155, 5],
+  ["Macedonian Continuers", 125, 5],
+  ["Modern Hebrew Continuers", 175, 5],
+  ["Persian Continuers", 125, 5],
+  ["Polish Continuers", 125, 5],
+  ["Portuguese Continuers", 125, 5],
+  ["Punjabi Continuers", 125, 5],
+  ["Russian Continuers", 125, 5],
+  ["Serbian Continuers", 125, 5],
+  ["Spanish Beginners", 155, 5],
+  ["Spanish Continuers", 175, 5],
+  ["Swedish Continuers", 125, 5],
+  ["Tamil Continuers", 125, 5],
+  ["Turkish Continuers", 125, 5],
+  ["Vietnamese Continuers", 175, 5],
+  ["Modern History", 180, 5],
+  ["Japanese Extension", 115, 5],
+  ["Classical Greek Continuers", 180, 5],
+  ["Hospitality (VET) (Food and Beverage)", 120, 5],
+  ["Hospitality (VET) (Kitchen Operations and Cookery)", 120, 5],
+  ["German Extension", 115, 5],
+  ["Mathematics Advanced", 180, 10],
+  ["Mathematics Standard 1", 120, 10],
+  ["Mathematics Standard 2", 150, 10],
+  ["Mathematics Extension 2", 180, 10],
+  ["German Beginners", 150, 10],
+  ["Engineering Studies", 180, 5],
+  ["Latin Continuers", 180, 5],
+  ["Primary Industries (VET)", 120, 5],
+  ["Textiles and Design", 90, 5],
+  ["Spanish Extension", 115, 5],
+  ["Automotive (VET)", 120, 5],
+  ["Society & Culture", 120, 5],
+  ["Arabic Extension", 115, 5],
+  ["Chinese Continuers", 175, 5],
+  ["Biology", 180, 5],
+  ["History Extension", 125, 5],
+  ["Business Services (VET)", 120, 5],
+  ["Chinese and Literature", 175, 5],
+  ["Latin Extension", 125, 5],
+  ["Studies of Religion I", 90, 5],
+  ["Studies of Religion II", 180, 5],
+  ["Drama", 90, 5],
+  ["Chinese Beginners", 155, 5],
+  ["Chinese Extension", 115, 5],
+  ["Ancient History", 180, 5],
+  ["Electrotechnology (VET)", 120, 5],
+  ["Mathematics Extension 1", 120, 10],
+  ["Business Studies", 180, 5],
+  ["Science Extension", 125, 5],
+  ["Construction (VET)", 120, 5],
+  ["Modern Greek Beginners", 150, 10],
+  ["Human Services (VET)", 120, 5],
+  ["Italian Continuers", 170, 10],
+  ["Korean Continuers", 170, 10],
+  ["Modern Greek Extension", 110, 10],
+  ["Software Engineering", 140, 10],
+  ["Economics", 180, 5],
+  ["Entertainment Industry (VET)", 120, 5],
+  ["Health and Movement Science", 180, 10],
+  ["English Extension 1", 125, 5],
+  ["Information and Digital Technology (VET)", 120, 5],
+  ["Retail Services (VET)", 120, 5],
+  ["Korean and Literature", 175, 5],
+  ["Italian Beginners", 150, 10],
+  ["Korean Beginners", 150, 10],
+  ["Dance Section I (Core Appreciation)", 60, 5],
+  ["Italian Extension", 110, 10],
+  ["Modern Greek Continuers", 170, 10],
+  ["Enterprise Computing", 140, 10],
+  ["Dance Section II (Major Study Appreciation)", 80, 0],
+  ["Design and Technology", 90, 5],
+  ["French Beginners", 155, 5],
+  ["French Extension", 115, 5],
+  ["Aboriginal Studies", 180, 5],
+  ["Chemistry", 180, 5],
+  ["Financial Services (VET)", 120, 5],
+  ["Visual Arts (Art Criticism and Art History)", 90, 5],
+  ["Legal Studies", 180, 5],
+  ["Geography", 185, 5],
+  ["Community and Family Studies", 180, 5],
+  ["Investigating Science", 180, 5],
+  ["French Continuers", 175, 5],
+  ["Food Technology", 180, 5],
+  ["Industrial Technology (Automotive Technologies)", 90, 5],
+  ["Industrial Technology (Electronics Technologies)", 90, 5],
+  ["Industrial Technology (Graphics Technologies)", 90, 5],
+  ["Industrial Technology (Metal and Engineering Technologies)", 90, 5],
+  ["Industrial Technology (Multimedia Technologies)", 90, 5],
+  ["Industrial Technology (Timber and Furniture Technologies)", 90, 5],
+  ["Physics", 180, 5],
+];
+
+/* ============ state ============ */
+let state = {
+  baseMinutes: 120,
+  extraOn: false, extraRate: 5,
+  restOn: false, restRate: 5,
+  readingOn: false,
+  selectedSubject: null, // {name, mins, readingMins}
+  readingSeconds: 0,
+  readingPhase: false,
+  examSeconds: 0,
+  restSeconds: 0,
+  isOnBreak: false,
+  paused: false,
+  pages: 0,
+  maxPages: 20,
+  currentPage: 1,
+};
+let tickHandle = null;
+let internalClipboard = null; // {html}
+let lastFocusedPage = null;
+
+/* ============ screen / modal helpers ============ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+function alertBox(title, body){
+  document.getElementById('alertTitle').textContent = title;
+  document.getElementById('alertBody').textContent = body;
+  openModal('alertModal');
+}
+
+/* ============ setup screen ============ */
+const SUBJECT_LABELS = []; // [{name, label, mins, readingMins}]
+function stripQualifiers(name){
+  // Remove parenthetical module/paper qualifiers, but keep a bare "(VET)" tag
+  let cleaned = name.replace(/\s*\(([^)]*)\)/g, (match, inner) => inner.trim() === 'VET' ? ' (VET)' : '');
+  return cleaned.replace(/\s+/g, ' ').trim();
+}
+function initSubjects(){
+  const seen = new Set();
+  SUBJECTS.forEach(([rawName, mins, readingMins])=>{
+    const name = stripQualifiers(rawName);
+    const h = Math.floor(mins/60), m = mins%60;
+    const timeStr = h>0 ? `${h}h ${m}m` : `${m}m`;
+    const label = `${name} (${timeStr})`;
+    const key = `${name}__${mins}__${readingMins}`;
+    if(seen.has(key)) return;
+    seen.add(key);
+    SUBJECT_LABELS.push({name, label, mins, readingMins});
+  });
+}
+function renderSubjectDropdown(query){
+  const dd = document.getElementById('subjectDropdown');
+  const q = query.trim().toLowerCase();
+  const matches = q
+    ? SUBJECT_LABELS.filter(s => s.name.toLowerCase().includes(q))
+    : SUBJECT_LABELS;
+  if(matches.length === 0){
+    dd.innerHTML = '<div class="none">No matching subjects</div>';
+  } else {
+    dd.innerHTML = matches.slice(0, 30).map(s =>
+      `<div class="opt" onmousedown="event.preventDefault(); pickSubject(${SUBJECT_LABELS.indexOf(s)})">${s.label}</div>`
+    ).join('');
+  }
+  dd.classList.add('open');
+}
+function onSubjectInput(){
+  const input = document.getElementById('subjectInput');
+  renderSubjectDropdown(input.value);
+}
+function pickSubject(idx){
+  const s = SUBJECT_LABELS[idx];
+  if(!s) return;
+  document.getElementById('subjectInput').value = s.label;
+  document.getElementById('subjectDropdown').classList.remove('open');
+  state.selectedSubject = { name: s.name, mins: s.mins, readingMins: s.readingMins };
+  setDuration(s.mins, null);
+  enableReadingToggle();
+}
+function hideSubjectDropdownDelayed(){
+  setTimeout(()=>{ document.getElementById('subjectDropdown').classList.remove('open'); }, 120);
+}
+function setDuration(mins, btn){
+  state.baseMinutes = mins;
+  document.getElementById('manualMinutes').value = mins;
+  document.querySelectorAll('.duration-circle').forEach(b=>b.classList.remove('selected'));
+  if(btn) btn.classList.add('selected');
+  updateDurationLabel();
+  updateSummary();
+}
+function onManualChange(){
+  const v = parseInt(document.getElementById('manualMinutes').value,10);
+  state.baseMinutes = (isNaN(v) || v<10) ? 10 : v;
+  document.getElementById('subjectInput').value = '';
+  document.querySelectorAll('.duration-circle').forEach(b=>b.classList.remove('selected'));
+  clearSelectedSubject();
+  updateDurationLabel();
+  updateSummary();
+}
+function clearSelectedSubject(){
+  state.selectedSubject = null;
+  state.readingOn = false;
+  document.getElementById('readingDot').classList.remove('on');
+  document.getElementById('readingOptions').style.display = 'none';
+  disableReadingToggle();
+}
+function enableReadingToggle(){
+  document.getElementById('readingDot').classList.remove('disabled');
+  document.getElementById('readingHint').style.display = 'none';
+}
+function disableReadingToggle(){
+  document.getElementById('readingDot').classList.add('disabled');
+  document.getElementById('readingHint').style.display = 'block';
+}
+function updateDurationLabel(){
+  document.getElementById('durationSelectedLbl').textContent = `Selected duration: ${fmtHM(state.baseMinutes)}`;
+  const h = Math.floor(state.baseMinutes/60), m = state.baseMinutes%60;
+  document.getElementById('currentDurationCircle').innerHTML = `${h}h<br>${m}m`;
+}
+function toggleExtra(){
+  state.extraOn = !state.extraOn;
+  document.getElementById('extraDot').classList.toggle('on', state.extraOn);
+  document.getElementById('extraOptions').style.display = state.extraOn ? 'flex' : 'none';
+  updateSummary();
+}
+function toggleRest(){
+  state.restOn = !state.restOn;
+  document.getElementById('restDot').classList.toggle('on', state.restOn);
+  document.getElementById('restOptions').style.display = state.restOn ? 'flex' : 'none';
+  updateSummary();
+}
+function toggleReading(){
+  if(!state.selectedSubject){
+    alertBox('Choose a subject first', 'Reading time depends on the subject you\'re practising. Search for and select a subject above before enabling this option.');
+    return;
+  }
+  state.readingOn = !state.readingOn;
+  document.getElementById('readingDot').classList.toggle('on', state.readingOn);
+  document.getElementById('readingOptions').style.display = state.readingOn ? 'flex' : 'none';
+  if(state.readingOn){
+    document.getElementById('readingRateLbl').textContent = `${state.selectedSubject.readingMins} min reading time`;
+  }
+  updateSummary();
+}
+function setExtraRate(r){
+  state.extraRate = r;
+  document.querySelectorAll('#extraOptions .pill').forEach(p=>p.classList.toggle('selected', parseFloat(p.dataset.rate)===r));
+  updateSummary();
+}
+function computeTotals(){
+  const base = state.baseMinutes;
+  const extraMins = state.extraOn ? Math.round(base/30*state.extraRate) : 0;
+  const restMins = state.restOn ? Math.round(base/30*state.restRate) : 0;
+  const readingMins = (state.readingOn && state.selectedSubject) ? state.selectedSubject.readingMins : 0;
+  return { base, extraMins, restMins, readingMins, examTotal: base + extraMins };
+}
+function updateSummary(){
+  const t = computeTotals();
+  let s = `Exam writing time: ${fmtHM(t.base)}`;
+  if(state.extraOn) s += ` + ${fmtHM(t.extraMins)} extra time = ${fmtHM(t.examTotal)} total`;
+  if(state.readingOn) s += ` · Reading time: ${fmtHM(t.readingMins)} (before writing starts)`;
+  if(state.restOn) s += ` · Rest break bank: ${fmtHM(t.restMins)}`;
+  document.getElementById('setupSummary').textContent = s;
+}
+function fmtHM(mins){
+  const h = Math.floor(mins/60), m = mins%60;
+  return h>0 ? `${h}h ${m}m` : `${m}m`;
+}
+function goToSetup(){
+  showScreen('screen-setup');
+  updateSummary();
+}
+
+/* ============ begin exam ============ */
+function beginExam(){
+  const t = computeTotals();
+  state.examSeconds = t.examTotal*60;
+  state.restSeconds = t.restMins*60;
+  state.readingSeconds = t.readingMins*60;
+  state.readingPhase = state.readingOn && t.readingMins > 0;
+  state.isOnBreak = false;
+  state.paused = false;
+  state.currentPage = 1;
+
+  document.getElementById('pagesWrap').innerHTML = '';
+  state.pages = 0;
+  addPage();
+  setPagesEditable(!state.readingPhase);
+
+  document.getElementById('restTimerBox').classList.toggle('dim', !state.restOn);
+  document.getElementById('readingTimerBox').classList.toggle('dim', !state.readingOn);
+  document.getElementById('breakBtn').style.display = state.restOn ? 'flex' : 'none';
+  updateTimerDisplay();
+  showScreen('screen-exam');
+
+  if(state.readingPhase){
+    alertBox('Reading time has started', `You have ${fmtHM(t.readingMins)} of reading time. Writing is locked until it ends, then the exam clock will start automatically.`);
+  }
+
+  if(tickHandle) clearInterval(tickHandle);
+  tickHandle = setInterval(tick, 1000);
+}
+
+/* ============ pages ============ */
+function addPage(){
+  if(state.pages >= state.maxPages){
+    alertBox('Page limit reached', 'You have reached the maximum of 20 pages.');
+    return;
+  }
+  state.pages++;
+  const wrap = document.getElementById('pagesWrap');
+  const page = document.createElement('div');
+  page.className = 'page';
+  page.setAttribute('contenteditable', 'true');
+  page.dataset.page = state.pages;
+  page.addEventListener('focus', ()=>{ lastFocusedPage = page; state.currentPage = parseInt(page.dataset.page,10); updatePageIndicator(); });
+  page.addEventListener('input', updateWordCount);
+  attachClipboardGuards(page);
+  wrap.appendChild(page);
+
+  const tag = document.createElement('div');
+  tag.className = 'page-num-tag';
+  tag.textContent = `Page ${state.pages}`;
+  wrap.appendChild(tag);
+
+  document.getElementById('newPageBtn').disabled = state.pages >= state.maxPages;
+  lastFocusedPage = page;
+  page.focus();
+  updatePageIndicator();
+  updateWordCount();
+}
+function updatePageIndicator(){
+  document.getElementById('pageIndicator').textContent = `Page ${state.currentPage} of ${state.pages}`;
+}
+function updateWordCount(){
+  let total = 0;
+  document.querySelectorAll('.page').forEach(p=>{
+    const txt = p.innerText.trim();
+    total += txt ? txt.split(/\s+/).length : 0;
+  });
+  document.getElementById('wordCount').textContent = `${total} word${total===1?'':'s'}`;
+}
+
+/* ============ clipboard restriction (internal-only) ============ */
+function attachClipboardGuards(el){
+  el.addEventListener('copy', e=>{
+    const sel = window.getSelection();
+    if(sel && sel.rangeCount){
+      const div = document.createElement('div');
+      div.appendChild(sel.getRangeAt(0).cloneContents());
+      internalClipboard = div.innerHTML;
+    }
+    e.preventDefault();
+  });
+  el.addEventListener('cut', e=>{
+    const sel = window.getSelection();
+    if(sel && sel.rangeCount){
+      const div = document.createElement('div');
+      div.appendChild(sel.getRangeAt(0).cloneContents());
+      internalClipboard = div.innerHTML;
+      sel.getRangeAt(0).deleteContents();
+      updateWordCount();
+    }
+    e.preventDefault();
+  });
+  el.addEventListener('paste', e=>{
+    e.preventDefault();
+    if(internalClipboard){
+      document.execCommand('insertHTML', false, internalClipboard);
+      updateWordCount();
+    }
+  });
+}
+function doCommand(cmd, val){
+  const target = lastFocusedPage || document.querySelector('.page');
+  if(target) target.focus();
+  if(cmd === 'paste'){
+    if(internalClipboard){
+      document.execCommand('insertHTML', false, internalClipboard);
+      updateWordCount();
+    } else {
+      alertBox('Nothing to paste', 'Copy or cut something inside the ExamWriter first — pasting from outside the ExamWriter is not permitted.');
+    }
+    return;
+  }
+  try{ document.execCommand(cmd, false, val); }catch(e){}
+  updateWordCount();
+}
+
+/* ============ timers ============ */
+function tick(){
+  if(state.paused) return;
+  if(state.readingPhase){
+    if(state.readingSeconds > 0){
+      state.readingSeconds--;
+    }
+    if(state.readingSeconds <= 0){
+      state.readingSeconds = 0;
+      state.readingPhase = false;
+      setPagesEditable(true);
+      alertBox('Reading time ended', 'Reading time has finished. You may now begin writing — the exam clock has started.');
+    }
+    updateTimerDisplay();
+    return;
+  }
+  if(state.isOnBreak){
+    if(state.restSeconds > 0){
+      state.restSeconds--;
+    }
+    if(state.restSeconds <= 0){
+      state.restSeconds = 0;
+      state.isOnBreak = false;
+      setPagesEditable(true);
+      updateBreakButton();
+      alertBox('Rest break ended', 'Your rest break time has run out. The exam clock has resumed.');
+    }
+  } else {
+    if(state.examSeconds > 0){
+      state.examSeconds--;
+    }
+    if(state.examSeconds <= 0){
+      state.examSeconds = 0;
+      clearInterval(tickHandle);
+      setPagesEditable(false);
+      alertBox('Exam time ended', 'Your exam writing time has finished. Editing is now locked — use Export / Print to save your work as a PDF.');
+    }
+  }
+  updateTimerDisplay();
+}
+function updateTimerDisplay(){
+  document.getElementById('examTimeVal').textContent = formatTime(state.examSeconds);
+  document.getElementById('restTimeVal').textContent = formatTime(state.restSeconds);
+  document.getElementById('readingTimeVal').textContent = formatTime(state.readingSeconds);
+  document.getElementById('examTimerBox').classList.toggle('dim', state.isOnBreak || state.readingPhase);
+  document.getElementById('restTimerBox').classList.toggle('dim', (!state.isOnBreak && !state.restOn) || state.readingPhase);
+  document.getElementById('readingTimerBox').classList.toggle('dim', !state.readingOn);
+  document.getElementById('breakBtn').classList.toggle('dim', state.readingPhase);
+}
+function formatTime(totalSeconds){
+  const h = Math.floor(totalSeconds/3600);
+  const m = Math.floor((totalSeconds%3600)/60);
+  const s = totalSeconds%60;
+  return [h,m,s].map(n=>String(n).padStart(2,'0')).join(':');
+}
+function toggleBreak(){
+  if(state.readingPhase){
+    alertBox('Reading time in progress', "You can't start a rest break until reading time has ended.");
+    return;
+  }
+  if(!state.restOn){
+    alertBox('Rest breaks not enabled', 'You did not select Rest Break Provisions during exam setup.');
+    return;
+  }
+  if(!state.isOnBreak && state.restSeconds <= 0){
+    alertBox('No rest time remaining', 'You have used all of your rest break time.');
+    return;
+  }
+  state.isOnBreak = !state.isOnBreak;
+  setPagesEditable(!state.isOnBreak);
+  updateBreakButton();
+  updateTimerDisplay();
+}
+function updateBreakButton(){
+  const lbl = document.getElementById('breakBtnLbl');
+  lbl.innerHTML = state.isOnBreak ? 'Stop<br>Rest Break' : 'Start/Stop<br>Rest Break';
+}
+function setAlign(btn, cmd){
+  document.querySelectorAll('.fbtn.align').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  doCommand(cmd);
+}
+function setPagesEditable(editable){
+  document.querySelectorAll('.page').forEach(p=>p.setAttribute('contenteditable', editable ? 'true' : 'false'));
+}
+
+/* ============ leave / print ============ */
+function confirmLeave(){ openModal('leaveModal'); }
+function leaveExamConfirmed(){
+  closeModal('leaveModal');
+  if(tickHandle) clearInterval(tickHandle);
+  showScreen('screen-home');
+}
+function doPrint(){ window.print(); }
+
+/* ============ init ============ */
+initSubjects();
+document.getElementById('extraOptions').style.display = 'none';
+document.getElementById('restOptions').style.display = 'none';
+updateDurationLabel();
+</script>
+</body>
+</html>
